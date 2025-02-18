@@ -15,10 +15,6 @@ def fetch_project_keys(p_jira):
     return [project.key for project in p_jira.projects()]
 
 
-project_keys = fetch_project_keys(jira)
-print(project_keys)
-
-
 def search():
     url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
     auth = HTTPBasicAuth(os.getenv("JIRA_EMAIL"), os.getenv("JIRA_API_TOKEN"))
@@ -80,14 +76,6 @@ def extract_project_labels(response_json):
     return {key: list(value) for key, value in project_labels.items()}
 
 
-# labels_json = search()
-# labels_list = extract_labels(labels_json)
-# print(labels_list)
-#
-# project_labels_dict = extract_project_labels(labels_json)
-# print(project_labels_dict)
-
-
 def fetch_all_labels():
     url = f"{JIRA_BASE_URL}/rest/api/3/label"
     auth = HTTPBasicAuth(os.getenv("JIRA_EMAIL"), os.getenv("JIRA_API_TOKEN"))
@@ -99,8 +87,3 @@ def fetch_all_labels():
         return json.loads(response.text).get("values", [])
     else:
         return []
-
-labels_json = search()
-labels_list = extract_labels(labels_json)
-print(labels_list)
-print(fetch_all_labels())
