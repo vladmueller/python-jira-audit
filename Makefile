@@ -20,8 +20,8 @@ install:
 	$(MAKE) python
 
 
-python: $(PYTHON)
-	@echo "Running Python script"
+audit: $(PYTHON)
+	@$(PYTHON) audit.py
 
 
 clean:
