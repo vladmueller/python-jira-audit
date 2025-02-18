@@ -22,27 +22,31 @@ print(project_keys)
 def search():
     url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
     auth = HTTPBasicAuth(os.getenv("JIRA_EMAIL"), os.getenv("JIRA_API_TOKEN"))
+    headers = {"Accept": "application/json"}
 
-    headers = {
-        "Accept": "application/json"
-    }
+    all_issues = []
+    next_page_token = None
 
-    query = {
-        'jql': "project IN ('AI', 'BWM', 'BROOK', 'CPMCT', 'CMDEV', 'CSCP', 'CSCPDESK', 'GTMS', 'IBC', 'IS', 'IQR', 'IQROMS', 'JB', 'JIR', 'JT', 'LEAD', 'MK', 'MDP', 'MW', 'MW2', 'MOR', 'MWR2', 'REPMC', 'RCIM', 'SAL', 'TESTSE', 'SS', 'SA', 'SUP', 'SWSCRUM', 'VDR', 'VAC', 'AB', 'WM2', 'ZOR') AND labels IS NOT EMPTY",
-        'maxResults': '800',
-        'fields': 'labels',
-    }
+    while True:
+        query = {
+            'jql': "project IN ('AI', 'BWM', 'BROOK', 'CPMCT', 'CMDEV', 'CSCP', 'CSCPDESK', 'GTMS', 'IBC', 'IS', 'IQR', 'IQROMS', 'JB', 'JIR', 'JT', 'LEAD', 'MK', 'MDP', 'MW', 'MW2', 'MOR', 'MWR2', 'REPMC', 'RCIM', 'SAL', 'TESTSE', 'SS', 'SA', 'SUP', 'SWSCRUM', 'VDR', 'VAC', 'AB', 'WM2', 'ZOR') AND labels IS NOT EMPTY",
+            'maxResults': '800',
+            'fields': 'labels',
+        }
 
-    response = requests.request(
-        "GET",
-        url,
-        headers=headers,
-        params=query,
-        auth=auth
-    )
+        if next_page_token:
+            query['nextPageToken'] = next_page_token
 
-    return json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": "))
+        response = requests.get(url, headers=headers, params=query, auth=auth)
+        data = response.json()
 
+        all_issues.extend(data.get("issues", []))
+
+        next_page_token = data.get("nextPageToken")
+        if not next_page_token:
+            break
+
+    return json.dumps({"issues": all_issues}, sort_keys=True, indent=4, separators=(",", ": "))
 
 
 def extract_labels(response_json):
