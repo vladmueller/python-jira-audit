@@ -1,6 +1,9 @@
+import json
 import os
+import requests
 from dotenv import load_dotenv
 from jira import JIRA
+from requests.auth import HTTPBasicAuth
 
 load_dotenv()
 JIRA_BASE_URL = os.getenv("JIRA_BASE_URL")
@@ -14,3 +17,46 @@ def fetch_project_keys(p_jira):
 
 project_keys = fetch_project_keys(jira)
 print(project_keys)
+
+
+def search():
+    url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
+    auth = HTTPBasicAuth(os.getenv("JIRA_EMAIL"), os.getenv("JIRA_API_TOKEN"))
+
+    headers = {
+        "Accept": "application/json"
+    }
+
+    query = {
+        'jql': "project IN ('AI', 'BWM', 'BROOK', 'CPMCT', 'CMDEV', 'CSCP', 'CSCPDESK', 'GTMS', 'IBC', 'IS', 'IQR', 'IQROMS', 'JB', 'JIR', 'JT', 'LEAD', 'MK', 'MDP', 'MW', 'MW2', 'MOR', 'MWR2', 'REPMC', 'RCIM', 'SAL', 'TESTSE', 'SS', 'SA', 'SUP', 'SWSCRUM', 'VDR', 'VAC', 'AB', 'WM2', 'ZOR') AND labels IS NOT EMPTY",
+        'maxResults': '800',
+        'fields': 'labels',
+    }
+
+    response = requests.request(
+        "GET",
+        url,
+        headers=headers,
+        params=query,
+        auth=auth
+    )
+
+    return json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": "))
+
+
+def extract_labels(response_json):
+    labels_set = set()
+
+    response_dict = json.loads(response_json)
+    issues = response_dict.get("issues", [])
+
+    for issue in issues:
+        labels = issue.get("fields", {}).get("labels", [])
+        labels_set.update(labels)
+
+    return list(labels_set)
+
+
+labels_json = search()
+labels_list = extract_labels(labels_json)
+print(labels_list)
