@@ -44,6 +44,7 @@ def search():
     return json.dumps(json.loads(response.text), sort_keys=True, indent=4, separators=(",", ": "))
 
 
+
 def extract_labels(response_json):
     labels_set = set()
 
@@ -57,6 +58,28 @@ def extract_labels(response_json):
     return list(labels_set)
 
 
+def extract_project_labels(response_json):
+    project_labels = {}
+
+    response_dict = json.loads(response_json)
+    issues = response_dict.get("issues", [])
+
+    for issue in issues:
+        project_key = issue.get("key", "").split("-")[0]
+        labels = issue.get("fields", {}).get("labels", [])
+
+        if project_key:
+            if project_labels.get(project_key) is None:
+                project_labels[project_key] = set()
+            project_labels[project_key].update(labels)
+
+    return {key: list(value) for key, value in project_labels.items()}
+
+
 labels_json = search()
 labels_list = extract_labels(labels_json)
 print(labels_list)
+
+project_labels_dict = extract_project_labels(labels_json)
+print(project_labels_dict)
+
