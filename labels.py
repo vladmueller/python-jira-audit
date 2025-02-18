@@ -11,8 +11,14 @@ JIRA_BASE_URL = os.getenv("JIRA_BASE_URL")
 jira = JIRA(JIRA_BASE_URL, basic_auth=(os.getenv("JIRA_EMAIL"), os.getenv("JIRA_API_TOKEN")))
 
 
-def fetch_project_keys(p_jira):
-    return [project.key for project in p_jira.projects()]
+def fetch_project_keys():
+    return [project.key for project in jira.projects()]
+
+
+def build_projects_jql():
+    project_keys = fetch_project_keys()
+    jql_string = f"project IN ({', '.join(f'\'{key}\'' for key in project_keys)})"
+    return jql_string
 
 
 def search():
@@ -25,7 +31,7 @@ def search():
 
     while True:
         query = {
-            'jql': "project IN ('AI', 'BWM', 'BROOK', 'CPMCT', 'CMDEV', 'CSCP', 'CSCPDESK', 'GTMS', 'IBC', 'IS', 'IQR', 'IQROMS', 'JB', 'JIR', 'JT', 'LEAD', 'MK', 'MDP', 'MW', 'MW2', 'MOR', 'MWR2', 'REPMC', 'RCIM', 'SAL', 'TESTSE', 'SS', 'SA', 'SUP', 'SWSCRUM', 'VDR', 'VAC', 'AB', 'WM2', 'ZOR') AND labels IS NOT EMPTY",
+            'jql': f"{build_projects_jql()} AND labels IS NOT EMPTY",
             'maxResults': '800',
             'fields': 'labels',
         }
