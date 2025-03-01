@@ -2,7 +2,7 @@
 
 ## How to use this script
 
-- TODO
+- TODO Makefile
 
 ## Libraries and Jira Cloud REST API
 
